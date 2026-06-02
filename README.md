@@ -64,6 +64,28 @@ Useful endpoints:
 - `POST /upload`
 - `GET /download/{filename}`
 
+## Run the Frontend
+
+Install and start the React frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open the app:
+
+```text
+http://127.0.0.1:5173
+```
+
+Keep the backend running at the same time so the frontend can upload files to:
+
+```text
+http://127.0.0.1:8000
+```
+
 ## Current Cleaning Rules
 
 - Remove duplicate rows
