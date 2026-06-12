@@ -533,14 +533,35 @@ function App() {
 
   return (
     <main className="app-shell">
+      <nav className="brand-bar" aria-label="Actulnsight">
+        <div className="brand-lockup">
+          <div className="brand-mark" aria-hidden="true">
+            <span>A</span>
+          </div>
+          <div>
+            <strong>Actulnsight</strong>
+            <span>Clean data and regression predictions</span>
+          </div>
+        </div>
+      </nav>
+
       <section className="header">
         <div>
-          <p className="eyebrow">Data Cleaning Platform</p>
-          <h1>Clean, profile, model, and predict from tabular data.</h1>
+          <p className="eyebrow">Workspace</p>
+          <h1>Prepare datasets and generate predictions.</h1>
+          <p className="header-copy">
+            Upload a spreadsheet, clean it, train a regression model, then export prediction results.
+          </p>
         </div>
       </section>
 
       <section className="upload-panel">
+        <div className="upload-heading">
+          <div>
+            <h2>Dataset intake</h2>
+          </div>
+          <span className="file-types">CSV / XLSX / XLS</span>
+        </div>
         <form onSubmit={handleUpload}>
           <label htmlFor="file-upload">Dataset file</label>
           <div className="upload-row">
