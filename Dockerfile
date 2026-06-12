@@ -23,7 +23,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY backend ./backend
 COPY data_engine ./data_engine
 COPY model_engine ./model_engine
-COPY storage ./storage
 COPY --from=frontend-builder /app/frontend/dist ./frontend/dist
 
 RUN mkdir -p storage/uploads storage/outputs storage/models storage/predictions
