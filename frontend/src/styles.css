@@ -92,6 +92,12 @@ label {
   align-items: center;
 }
 
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 input[type="file"] {
   min-width: 0;
   width: 100%;
@@ -120,6 +126,55 @@ button,
 button:disabled {
   background: #8aa6b0;
   cursor: wait;
+}
+
+.info-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.info-button {
+  width: 32px;
+  min-height: 32px;
+  height: 32px;
+  border: 1px solid #cbd5e1;
+  border-radius: 50%;
+  padding: 0;
+  background: #ffffff;
+  color: #176b87;
+  font-weight: 800;
+  cursor: help;
+}
+
+.tooltip {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  z-index: 10;
+  width: 280px;
+  margin: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 12px 14px 12px 28px;
+  background: #172033;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.tooltip li + li {
+  margin-top: 6px;
+}
+
+.info-wrap:hover .tooltip,
+.info-wrap:focus-within .tooltip {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .download-link {
@@ -206,6 +261,16 @@ th {
   .results-grid,
   .stat-grid {
     grid-template-columns: 1fr;
+  }
+
+  .action-row {
+    align-items: stretch;
+  }
+
+  .tooltip {
+    right: auto;
+    left: 0;
+    width: min(280px, calc(100vw - 48px));
   }
 
   .panel:last-child {

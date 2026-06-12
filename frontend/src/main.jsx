@@ -158,9 +158,24 @@ function App() {
               accept=".csv,.xlsx,.xls"
               onChange={(event) => setSelectedFile(event.target.files[0])}
             />
-            <button type="submit" disabled={isUploading}>
-              {isUploading ? "Uploading..." : "Upload"}
-            </button>
+            <div className="action-row">
+              <button type="submit" disabled={isUploading}>
+                {isUploading ? "Cleaning..." : "Clean"}
+              </button>
+              <span className="info-wrap">
+                <button className="info-button" type="button" aria-label="What cleaning does">
+                  !
+                </button>
+                <ul className="tooltip" role="tooltip">
+                  <li>Remove duplicate rows</li>
+                  <li>Normalize column names</li>
+                  <li>Trim extra spaces from text</li>
+                  <li>Treat blank cells as missing</li>
+                  <li>Convert numeric text into numbers</li>
+                  <li>Fill missing values</li>
+                </ul>
+              </span>
+            </div>
           </div>
         </form>
         {error && <p className="error-message">{error}</p>}
