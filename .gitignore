@@ -12,6 +12,8 @@ node_modules/
 # uploads
 storage/uploads/
 storage/outputs/
+storage/models/
+storage/predictions/
 
 # env
 .env

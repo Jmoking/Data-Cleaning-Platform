@@ -95,3 +95,56 @@ http://127.0.0.1:8000
 - Convert numeric-looking text columns into numbers
 - Fill numeric missing values with the median
 - Fill text missing values with `Unknown`
+
+## Current Modeling Flow
+
+After cleaning a dataset in the frontend:
+
+1. Choose a validation method
+2. Choose a regression model
+3. Choose one numeric column as `Predict Y`
+4. Choose one or more numeric columns as `X variables`
+5. Run the model
+
+Current validation methods:
+
+- 80 / 20 train-test split
+- K-Fold validation
+
+Current model options:
+
+- Pure linear regression
+- Ridge regression
+- Lasso regression
+
+The model returns metrics only:
+
+- RMSE
+- MAE
+- R squared
+- Train row count
+- Test row count
+
+After a model is trained, the backend saves it under `storage/models/` and returns:
+
+- Model ID
+- Model parameters
+- Evaluation metrics
+
+You can then upload a new CSV or Excel file with the same X variable columns. The saved model predicts the target value, returns a preview in the frontend, and creates a downloadable CSV with a new prediction column such as:
+
+```text
+predicted_salary
+```
+
+The R script is stored at:
+
+```text
+model_engine/linear_regression.R
+```
+
+The prediction script is stored at:
+
+```text
+model_engine/predict_with_saved_model.R
+```
