@@ -6,5 +6,11 @@ export default defineConfig({
   server: {
     host: "127.0.0.1",
     port: 5173,
+    proxy: {
+      "/download": "http://127.0.0.1:8000",
+      "/health": "http://127.0.0.1:8000",
+      "/model": "http://127.0.0.1:8000",
+      "/upload": "http://127.0.0.1:8000",
+    },
   },
 });

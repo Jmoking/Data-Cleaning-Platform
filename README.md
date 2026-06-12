@@ -86,6 +86,58 @@ Keep the backend running at the same time so the frontend can upload files to:
 http://127.0.0.1:8000
 ```
 
+## Run as One Website
+
+Build the frontend:
+
+```bash
+cd frontend
+npm install
+npm run build
+cd ..
+```
+
+Start the backend:
+
+```bash
+python3 -m uvicorn backend.main:app --reload
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000
+```
+
+In this mode, FastAPI serves both the website and the API.
+
+## Docker Deployment
+
+Build the Docker image:
+
+```bash
+docker build -t data-cleaning-platform .
+```
+
+Run it locally:
+
+```bash
+docker run -p 8000:8000 data-cleaning-platform
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000
+```
+
+The Docker image includes:
+
+- React frontend build
+- FastAPI backend
+- Python dependencies
+- R runtime for modeling scripts
+
 ## Current Cleaning Rules
 
 - Remove duplicate rows

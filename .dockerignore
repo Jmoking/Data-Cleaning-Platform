@@ -1,0 +1,12 @@
+.DS_Store
+.git
+.gitignore
+.venv
+__pycache__
+*.pyc
+frontend/dist
+frontend/node_modules
+storage/models
+storage/outputs
+storage/predictions
+storage/uploads

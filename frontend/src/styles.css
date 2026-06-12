@@ -1,7 +1,7 @@
 :root {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #172033;
-  background: #f5f7fb;
+  color: #182230;
+  background: #f6f8fb;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -12,6 +12,7 @@
 
 body {
   margin: 0;
+  min-width: 320px;
 }
 
 button,
@@ -21,23 +22,24 @@ select {
 }
 
 .app-shell {
-  width: min(1120px, calc(100% - 32px));
+  width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 40px 0;
+  padding: 32px 0 48px;
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   gap: 24px;
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 
 .eyebrow {
   margin: 0 0 8px;
-  color: #3b6b57;
-  font-size: 14px;
+  color: #176b87;
+  font-size: 12px;
   font-weight: 700;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
@@ -49,15 +51,17 @@ p {
 }
 
 h1 {
-  max-width: 720px;
+  max-width: 760px;
   margin-bottom: 0;
-  font-size: clamp(32px, 5vw, 56px);
-  line-height: 1.02;
+  font-size: 34px;
+  line-height: 1.12;
+  font-weight: 750;
 }
 
 h2 {
-  margin-bottom: 16px;
+  margin-bottom: 0;
   font-size: 22px;
+  line-height: 1.2;
 }
 
 h3 {
@@ -69,20 +73,22 @@ h3 {
 
 .upload-panel,
 .panel {
-  border: 1px solid #dfe5ee;
+  border: 1px solid #d8e0ea;
   border-radius: 8px;
   background: #ffffff;
-  box-shadow: 0 12px 30px rgba(31, 45, 61, 0.07);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
 }
 
 .upload-panel {
-  padding: 20px;
+  padding: 18px;
   margin-bottom: 20px;
 }
 
 label {
   display: block;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+  color: #344054;
+  font-size: 13px;
   font-weight: 700;
 }
 
@@ -102,10 +108,11 @@ label {
 input[type="file"] {
   min-width: 0;
   width: 100%;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #c9d4e3;
   border-radius: 6px;
   padding: 10px;
-  background: #f8fafc;
+  background: #ffffff;
+  color: #344054;
 }
 
 button,
@@ -125,8 +132,13 @@ button,
 }
 
 button:disabled {
-  background: #8aa6b0;
+  background: #9aaeb8;
   cursor: wait;
+}
+
+button:hover:not(:disabled),
+.download-link:hover {
+  background: #12566c;
 }
 
 .info-wrap {
@@ -179,8 +191,40 @@ button:disabled {
 }
 
 .download-link {
-  margin-top: 14px;
   background: #2f7d55;
+}
+
+.download-link:hover {
+  background: #266645;
+}
+
+.file-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  margin-top: 16px;
+  border-top: 1px solid #e6ebf2;
+  padding-top: 14px;
+}
+
+.file-summary span {
+  display: block;
+  margin-bottom: 4px;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.file-summary strong {
+  display: block;
+  max-width: 520px;
+  overflow: hidden;
+  color: #182230;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .error-message {
@@ -192,11 +236,12 @@ button:disabled {
 .results-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: 16px;
 }
 
 .panel {
-  padding: 20px;
+  min-width: 0;
+  padding: 18px;
 }
 
 .panel:last-child {
@@ -208,7 +253,7 @@ button:disabled {
   justify-content: space-between;
   gap: 16px;
   align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .panel-header h2 {
@@ -217,23 +262,24 @@ button:disabled {
 
 .panel-header p {
   margin-bottom: 0;
-  color: #607086;
+  color: #667085;
+  font-size: 13px;
 }
 
 .split-badge {
   flex: 0 0 auto;
-  border: 1px solid #bcd7c8;
+  border: 1px solid #b8d7e2;
   border-radius: 999px;
   padding: 6px 10px;
-  background: #eef8f2;
-  color: #2f7d55;
+  background: #eef8fb;
+  color: #176b87;
   font-size: 13px;
   font-weight: 800;
 }
 
 .model-form {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .model-controls {
@@ -244,11 +290,11 @@ button:disabled {
 
 select {
   width: 100%;
-  border: 1px solid #cbd5e1;
+  border: 1px solid #c9d4e3;
   border-radius: 6px;
   padding: 10px;
   background: #ffffff;
-  color: #172033;
+  color: #182230;
 }
 
 fieldset {
@@ -271,6 +317,9 @@ legend {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+  max-height: 220px;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .checkbox-option {
@@ -282,7 +331,7 @@ legend {
   border: 1px solid #e4e9f1;
   border-radius: 6px;
   padding: 8px 10px;
-  background: #f8fafc;
+  background: #fbfcfe;
   color: #26364a;
   font-weight: 700;
 }
@@ -331,10 +380,11 @@ legend {
 }
 
 .stat-card {
-  border: 1px solid #e4e9f1;
+  min-width: 0;
+  border: 1px solid #e2e8f0;
   border-radius: 6px;
-  padding: 14px;
-  background: #f8fafc;
+  padding: 12px;
+  background: #fbfcfe;
 }
 
 .stat-card span {
@@ -346,11 +396,19 @@ legend {
 }
 
 .stat-card strong {
-  font-size: 28px;
+  display: block;
+  overflow: hidden;
+  font-size: 24px;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .table-wrap {
-  overflow-x: auto;
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid #e6ebf2;
+  border-radius: 6px;
 }
 
 table {
@@ -362,21 +420,37 @@ table {
 th,
 td {
   border-bottom: 1px solid #e6ebf2;
-  padding: 10px 8px;
+  padding: 9px 10px;
   text-align: left;
   white-space: nowrap;
 }
 
 th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8fafc;
   color: #536278;
   font-size: 12px;
   text-transform: uppercase;
 }
 
+tr:last-child td {
+  border-bottom: 0;
+}
+
+tbody tr:hover {
+  background: #f9fbfd;
+}
+
 @media (max-width: 760px) {
   .app-shell {
     width: min(100% - 24px, 1120px);
-    padding: 24px 0;
+    padding: 22px 0 36px;
+  }
+
+  h1 {
+    font-size: 28px;
   }
 
   .upload-row,
@@ -391,6 +465,15 @@ th {
 
   .action-row {
     align-items: stretch;
+  }
+
+  .file-summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .file-summary strong {
+    max-width: 100%;
   }
 
   .panel-header {
@@ -410,5 +493,9 @@ th {
 
   .panel:last-child {
     grid-column: auto;
+  }
+
+  .table-wrap {
+    max-height: 300px;
   }
 }

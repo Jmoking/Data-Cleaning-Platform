@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from pathlib import Path
@@ -13,6 +14,7 @@ import uuid
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_ENGINE_DIR = PROJECT_ROOT / "data_engine"
 MODEL_ENGINE_DIR = PROJECT_ROOT / "model_engine"
+FRONTEND_DIST_DIR = PROJECT_ROOT / "frontend" / "dist"
 UPLOAD_DIR = PROJECT_ROOT / "storage" / "uploads"
 OUTPUT_DIR = PROJECT_ROOT / "storage" / "outputs"
 MODEL_DIR = PROJECT_ROOT / "storage" / "models"
@@ -49,11 +51,6 @@ class LinearRegressionRequest(BaseModel):
     model_type: str = "linear"
     validation_method: str = "holdout"
     k_folds: int = 5
-
-
-@app.get("/")
-def root():
-    return {"message": "Backend is running"}
 
 
 @app.get("/health")
@@ -261,3 +258,26 @@ def download_file(filename: str):
         filename=safe_filename,
         media_type="text/csv"
     )
+
+
+if FRONTEND_DIST_DIR.exists():
+    app.mount(
+        "/assets",
+        StaticFiles(directory=FRONTEND_DIST_DIR / "assets"),
+        name="assets",
+    )
+
+
+@app.get("/{full_path:path}")
+def serve_frontend(full_path: str):
+    index_file = FRONTEND_DIST_DIR / "index.html"
+
+    if not index_file.exists():
+        return {"message": "Backend is running"}
+
+    requested_file = FRONTEND_DIST_DIR / full_path
+
+    if full_path and requested_file.is_file():
+        return FileResponse(requested_file)
+
+    return FileResponse(index_file)

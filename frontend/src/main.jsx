@@ -2,7 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
-const API_BASE_URL = "http://127.0.0.1:8000";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
 function StatCard({ label, value }) {
   return (
@@ -20,7 +20,12 @@ function ProfilePanel({ title, profile }) {
 
   return (
     <section className="panel">
-      <h2>{title}</h2>
+      <div className="panel-header">
+        <div>
+          <h2>{title}</h2>
+          <p>{profile.columns} columns profiled</p>
+        </div>
+      </div>
       <div className="stat-grid">
         <StatCard label="Rows" value={profile.rows} />
         <StatCard label="Columns" value={profile.columns} />
@@ -61,7 +66,12 @@ function AnalysisPanel({ analysis }) {
 
   return (
     <section className="panel">
-      <h2>Numeric Summary</h2>
+      <div className="panel-header">
+        <div>
+          <h2>Numeric Summary</h2>
+          <p>{Object.keys(summary).length} numeric columns</p>
+        </div>
+      </div>
       <div className="table-wrap">
         <table>
           <thead>
@@ -120,7 +130,7 @@ function ModelPanel({
       <div className="panel-header">
         <div>
           <h2>Regression Model</h2>
-          <p>Choose the test method, model type, numeric X variables, and numeric predict Y.</p>
+          <p>{numericColumns.length} numeric columns available</p>
         </div>
         <span className="split-badge">
           {validationMethod === "holdout" ? "80 / 20 validation" : "5-Fold validation"}
@@ -526,7 +536,7 @@ function App() {
       <section className="header">
         <div>
           <p className="eyebrow">Data Cleaning Platform</p>
-          <h1>Upload a dataset and review the cleaning report.</h1>
+          <h1>Clean, profile, model, and predict from tabular data.</h1>
         </div>
       </section>
 
@@ -562,12 +572,18 @@ function App() {
         </form>
         {error && <p className="error-message">{error}</p>}
         {result && (
-          <a
-            className="download-link"
-            href={`${API_BASE_URL}/download/${result.cleaned_file}`}
-          >
-            Download cleaned file
-          </a>
+          <div className="file-summary">
+            <div>
+              <span>Cleaned file</span>
+              <strong>{result.cleaned_file}</strong>
+            </div>
+            <a
+              className="download-link compact-link"
+              href={`${API_BASE_URL}/download/${result.cleaned_file}`}
+            >
+              Download cleaned file
+            </a>
+          </div>
         )}
       </section>
 
