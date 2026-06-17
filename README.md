@@ -140,6 +140,8 @@ The Docker image includes:
 
 ## Current Cleaning Rules
 
+After uploading a dataset, users can choose which cleaning steps to run:
+
 - Remove duplicate rows
 - Normalize column names
 - Strip whitespace from text values
@@ -147,6 +149,8 @@ The Docker image includes:
 - Convert numeric-looking text columns into numbers
 - Fill numeric missing values with the median
 - Fill text missing values with `Unknown`
+
+Users can also skip cleaning and continue directly to modeling.
 
 ## Current Modeling Flow
 

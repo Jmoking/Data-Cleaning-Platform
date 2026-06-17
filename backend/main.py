@@ -25,7 +25,7 @@ sys.path.append(str(DATA_ENGINE_DIR))
 
 from reader import read_file
 from profiler import profile_data
-from cleaner import clean_data
+from cleaner import clean_data, get_cleaning_step_options
 from analyser import analyse_data
 
 app = FastAPI()
@@ -51,6 +51,12 @@ class LinearRegressionRequest(BaseModel):
     model_type: str = "linear"
     validation_method: str = "holdout"
     k_folds: int = 5
+
+
+class CleanRequest(BaseModel):
+    uploaded_file: str
+    steps: list[str] = []
+    skip_cleaning: bool = False
 
 
 @app.get("/health")
@@ -80,26 +86,54 @@ async def upload_file(file: UploadFile = File(...)):
     # Generate original profile
     original_profile = profile_data(df)
 
-    # Clean data
-    cleaned_df = clean_data(df)
-
-    output_filename = "cleaned_" + filename
-    output_path = OUTPUT_DIR / output_filename
-    cleaned_df.to_csv(output_path, index=False)
-
-    # Generate cleaned profile
-    cleaned_profile = profile_data(cleaned_df)
-
-    # Analyse cleaned data
-    analysis = analyse_data(cleaned_df)
-
     return {
         "filename": file.filename,
+        "uploaded_file": filename,
         "original_profile": original_profile,
-        "cleaned_profile": cleaned_profile,
+        "cleaning_steps": get_cleaning_step_options(),
+    }
+
+
+@app.post("/clean")
+def clean_uploaded_file(request: CleanRequest):
+    safe_filename = Path(request.uploaded_file).name
+    file_path = UPLOAD_DIR / safe_filename
+
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Uploaded file not found")
+
+    df = read_file(file_path)
+
+    if request.skip_cleaning:
+        prepared_df = df.copy()
+        output_filename = "prepared_" + Path(safe_filename).stem + ".csv"
+        applied_steps = []
+    else:
+        if not request.steps:
+            raise HTTPException(status_code=400, detail="Please choose at least one cleaning step or skip cleaning")
+
+        try:
+            prepared_df = clean_data(df, request.steps)
+        except ValueError as error:
+            raise HTTPException(status_code=400, detail=str(error)) from error
+
+        output_filename = "cleaned_" + Path(safe_filename).stem + ".csv"
+        applied_steps = request.steps
+
+    output_path = OUTPUT_DIR / output_filename
+    prepared_df.to_csv(output_path, index=False)
+
+    prepared_profile = profile_data(prepared_df)
+    analysis = analyse_data(prepared_df)
+
+    return {
+        "filename": safe_filename,
+        "cleaned_file": output_filename,
+        "cleaned_profile": prepared_profile,
         "analysis": analysis,
-        "cleaned_file": output_filename
-}
+        "applied_steps": applied_steps,
+        "skipped_cleaning": request.skip_cleaning,
+    }
 
 
 @app.post("/model/linear-regression")

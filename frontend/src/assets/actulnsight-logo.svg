@@ -1,0 +1,9 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Actulnsight logo</title>
+  <desc id="desc">A stylized letter A with an upward analytics line.</desc>
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="#0C3440"/>
+  <path d="M17 46L29.5 18H35.5L48 46H40.7L38.2 39.8H26.6L24.1 46H17Z" fill="#F7FBFC"/>
+  <path d="M28.7 34H36.1L32.4 24.7L28.7 34Z" fill="#0C3440"/>
+  <path d="M18 40.5C24.8 38.8 29.5 35.2 33.1 30.8C36.5 26.8 40.5 24.8 47 23.5" stroke="#67C79A" stroke-width="4" stroke-linecap="round"/>
+  <path d="M42.5 19.5L49.8 22.9L44.7 29.1" stroke="#67C79A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

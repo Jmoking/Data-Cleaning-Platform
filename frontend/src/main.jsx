@@ -1,5 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
+import actulnsightLogo from "./assets/actulnsight-logo.svg";
 import "./styles.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
@@ -19,7 +20,7 @@ function ProfilePanel({ title, profile }) {
   }
 
   return (
-    <section className="panel">
+    <section className="inline-report">
       <div className="panel-header">
         <div>
           <h2>{title}</h2>
@@ -65,7 +66,7 @@ function AnalysisPanel({ analysis }) {
   }
 
   return (
-    <section className="panel">
+    <section className="inline-report">
       <div className="panel-header">
         <div>
           <h2>Numeric Summary</h2>
@@ -122,11 +123,16 @@ function ModelPanel({
   onPredict,
 }) {
   if (numericColumns.length === 0) {
-    return null;
+    return (
+      <div className="empty-state">
+        <strong>No numeric columns available</strong>
+        <p>Run numeric text conversion during cleaning, or upload a dataset with numeric columns.</p>
+      </div>
+    );
   }
 
   return (
-    <section className="panel model-panel">
+    <div className="model-panel">
       <div className="panel-header">
         <div>
           <h2>Regression Model</h2>
@@ -278,7 +284,7 @@ function ModelPanel({
           )}
         </>
       )}
-    </section>
+    </div>
   );
 }
 
@@ -340,11 +346,75 @@ function getNumericColumns(profile) {
   });
 }
 
+async function parseResponse(response, fallbackMessage) {
+  const text = await response.text();
+  let data = {};
+
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(fallbackMessage);
+    }
+  }
+
+  if (!response.ok) {
+    throw new Error(data.detail || fallbackMessage);
+  }
+
+  return data;
+}
+
+function WorkflowCard({ step, title, summary, isOpen, isDisabled, onToggle, children }) {
+  return (
+    <section className={`workflow-card ${isOpen ? "is-open" : ""} ${isDisabled ? "is-disabled" : ""}`}>
+      <button
+        className="workflow-card-header"
+        type="button"
+        onClick={onToggle}
+        disabled={isDisabled}
+      >
+        <span className="workflow-step">{step}</span>
+        <span>
+          <strong>{title}</strong>
+          <small>{summary}</small>
+        </span>
+        <span className="collapse-icon">{isOpen ? "Close" : "Open"}</span>
+      </button>
+      {isOpen && <div className="workflow-card-body">{children}</div>}
+    </section>
+  );
+}
+
+function CleaningOptions({ steps, selectedSteps, onToggleStep }) {
+  return (
+    <div className="cleaning-grid">
+      {steps.map((step) => (
+        <label className="cleaning-option" key={step.id}>
+          <input
+            type="checkbox"
+            checked={selectedSteps.includes(step.id)}
+            onChange={() => onToggleStep(step.id)}
+          />
+          <span>
+            <strong>{step.label}</strong>
+            <small>{step.description}</small>
+          </span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
 function App() {
   const [selectedFile, setSelectedFile] = React.useState(null);
-  const [result, setResult] = React.useState(null);
+  const [uploadResult, setUploadResult] = React.useState(null);
+  const [preparedResult, setPreparedResult] = React.useState(null);
+  const [selectedCleaningSteps, setSelectedCleaningSteps] = React.useState([]);
   const [error, setError] = React.useState("");
   const [isUploading, setIsUploading] = React.useState(false);
+  const [isCleaning, setIsCleaning] = React.useState(false);
+  const [openPanel, setOpenPanel] = React.useState("upload");
   const [targetColumn, setTargetColumn] = React.useState("");
   const [featureColumns, setFeatureColumns] = React.useState([]);
   const [modelType, setModelType] = React.useState("linear");
@@ -370,7 +440,8 @@ function App() {
 
     setIsUploading(true);
     setError("");
-    setResult(null);
+    setUploadResult(null);
+    setPreparedResult(null);
     setModelResult(null);
     setModelError("");
     setPredictionFile(null);
@@ -383,20 +454,70 @@ function App() {
         body: formData,
       });
 
-      const data = await response.json();
+      const data = await parseResponse(response, "Upload failed. Please check the backend server.");
 
-      if (!response.ok) {
-        throw new Error(data.detail || "Upload failed.");
-      }
-
-      setResult(data);
-      const numericColumns = getNumericColumns(data.cleaned_profile);
-      setTargetColumn(numericColumns[0] || "");
-      setFeatureColumns(numericColumns.slice(1));
+      setUploadResult(data);
+      setSelectedCleaningSteps(data.cleaning_steps.map((step) => step.id));
+      setOpenPanel("clean");
     } catch (uploadError) {
       setError(uploadError.message);
     } finally {
       setIsUploading(false);
+    }
+  }
+
+  function handleCleaningStepToggle(stepId) {
+    setSelectedCleaningSteps((currentSteps) =>
+      currentSteps.includes(stepId)
+        ? currentSteps.filter((currentStepId) => currentStepId !== stepId)
+        : [...currentSteps, stepId]
+    );
+  }
+
+  async function handlePrepareData({ skipCleaning }) {
+    if (!uploadResult?.uploaded_file) {
+      setError("Please upload a dataset first.");
+      return;
+    }
+
+    if (!skipCleaning && selectedCleaningSteps.length === 0) {
+      setError("Choose at least one cleaning step or skip cleaning.");
+      return;
+    }
+
+    setIsCleaning(true);
+    setError("");
+    setPreparedResult(null);
+    setModelResult(null);
+    setModelError("");
+    setPredictionFile(null);
+    setPredictionResult(null);
+    setPredictionError("");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/clean`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uploaded_file: uploadResult.uploaded_file,
+          steps: selectedCleaningSteps,
+          skip_cleaning: skipCleaning,
+        }),
+      });
+
+      const data = await parseResponse(response, "Data preparation failed. Please restart the backend server.");
+
+      setPreparedResult(data);
+      const numericColumns = getNumericColumns(data.cleaned_profile);
+      setTargetColumn(numericColumns[0] || "");
+      setFeatureColumns(numericColumns.slice(1));
+      setOpenPanel("model");
+    } catch (cleanError) {
+      setError(cleanError.message);
+    } finally {
+      setIsCleaning(false);
     }
   }
 
@@ -442,8 +563,8 @@ function App() {
   async function handleTrainModel(event) {
     event.preventDefault();
 
-    if (!result) {
-      setModelError("Please clean a dataset first.");
+    if (!preparedResult) {
+      setModelError("Please prepare a dataset first.");
       return;
     }
 
@@ -465,7 +586,7 @@ function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          cleaned_file: result.cleaned_file,
+          cleaned_file: preparedResult.cleaned_file,
           target_column: targetColumn,
           feature_columns: featureColumns,
           model_type: modelType,
@@ -474,11 +595,7 @@ function App() {
         }),
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Model training failed.");
-      }
+      const data = await parseResponse(response, "Model training failed. Please check the backend logs.");
 
       setModelResult(data);
     } catch (trainError) {
@@ -515,11 +632,7 @@ function App() {
         body: formData,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.detail || "Prediction failed.");
-      }
+      const data = await parseResponse(response, "Prediction failed. Please check the backend logs.");
 
       setPredictionResult(data);
     } catch (predictError) {
@@ -529,113 +642,143 @@ function App() {
     }
   }
 
-  const numericColumns = getNumericColumns(result?.cleaned_profile);
+  const numericColumns = getNumericColumns(preparedResult?.cleaned_profile);
 
   return (
     <main className="app-shell">
       <nav className="brand-bar" aria-label="Actulnsight">
         <div className="brand-lockup">
-          <div className="brand-mark" aria-hidden="true">
-            <span>A</span>
-          </div>
-          <div>
-            <strong>Actulnsight</strong>
-            <span>Clean data and regression predictions</span>
-          </div>
+          <img className="brand-mark" src={actulnsightLogo} alt="Actulnsight logo" />
         </div>
       </nav>
 
       <section className="header">
         <div>
-          <p className="eyebrow">Workspace</p>
-          <h1>Prepare datasets and generate predictions.</h1>
-          <p className="header-copy">
-            Upload a spreadsheet, clean it, train a regression model, then export prediction results.
-          </p>
+          <h1>Clean. Model. Predict.</h1>
         </div>
       </section>
 
-      <section className="upload-panel">
-        <div className="upload-heading">
-          <div>
-            <h2>Dataset intake</h2>
-          </div>
-          <span className="file-types">CSV / XLSX / XLS</span>
-        </div>
-        <form onSubmit={handleUpload}>
-          <label htmlFor="file-upload">Dataset file</label>
-          <div className="upload-row">
-            <input
-              id="file-upload"
-              type="file"
-              accept=".csv,.xlsx,.xls"
-              onChange={(event) => setSelectedFile(event.target.files[0])}
-            />
-            <div className="action-row">
+      <div className="workflow-grid">
+        <WorkflowCard
+          step="01"
+          title="Upload data"
+          summary={uploadResult ? uploadResult.filename : "Add CSV or Excel"}
+          isOpen={openPanel === "upload"}
+          onToggle={() => setOpenPanel(openPanel === "upload" ? "" : "upload")}
+        >
+          <form onSubmit={handleUpload}>
+            <label htmlFor="file-upload">Dataset file</label>
+            <div className="upload-row">
+              <input
+                id="file-upload"
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                onChange={(event) => setSelectedFile(event.target.files[0])}
+              />
               <button type="submit" disabled={isUploading}>
-                {isUploading ? "Cleaning..." : "Clean"}
+                {isUploading ? "Uploading..." : "Upload"}
               </button>
-              <span className="info-wrap">
-                <button className="info-button" type="button" aria-label="What cleaning does">
-                  !
-                </button>
-                <ul className="tooltip" role="tooltip">
-                  <li>Remove duplicate rows</li>
-                  <li>Normalize column names</li>
-                  <li>Trim extra spaces from text</li>
-                  <li>Treat blank cells as missing</li>
-                  <li>Convert numeric text into numbers</li>
-                  <li>Fill missing values</li>
-                </ul>
-              </span>
             </div>
-          </div>
-        </form>
-        {error && <p className="error-message">{error}</p>}
-        {result && (
-          <div className="file-summary">
-            <div>
-              <span>Cleaned file</span>
-              <strong>{result.cleaned_file}</strong>
-            </div>
-            <a
-              className="download-link compact-link"
-              href={`${API_BASE_URL}/download/${result.cleaned_file}`}
-            >
-              Download cleaned file
-            </a>
-          </div>
-        )}
-      </section>
+          </form>
+          {uploadResult && (
+            <>
+              <div className="file-summary">
+                <div>
+                  <span>Uploaded file</span>
+                  <strong>{uploadResult.filename}</strong>
+                </div>
+              </div>
+              <ProfilePanel title="Original Data" profile={uploadResult.original_profile} />
+            </>
+          )}
+        </WorkflowCard>
 
-      {result && (
-        <div className="results-grid">
-          <ProfilePanel title="Original Data" profile={result.original_profile} />
-          <ProfilePanel title="Cleaned Data" profile={result.cleaned_profile} />
-          <AnalysisPanel analysis={result.analysis} />
-          <ModelPanel
-            numericColumns={numericColumns}
-            targetColumn={targetColumn}
-            featureColumns={featureColumns}
-            modelType={modelType}
-            validationMethod={validationMethod}
-            modelResult={modelResult}
-            modelError={modelError}
-            predictionFile={predictionFile}
-            predictionResult={predictionResult}
-            predictionError={predictionError}
-            isTraining={isTraining}
-            isPredicting={isPredicting}
-            onTargetChange={handleTargetChange}
-            onFeatureToggle={handleFeatureToggle}
-            onModelTypeChange={handleModelTypeChange}
-            onValidationMethodChange={handleValidationMethodChange}
-            onPredictionFileChange={setPredictionFile}
-            onTrain={handleTrainModel}
-            onPredict={handlePredict}
+        <WorkflowCard
+          step="02"
+          title="Choose cleaning"
+          summary={preparedResult ? "Data prepared" : "Select steps or skip"}
+          isOpen={openPanel === "clean"}
+          isDisabled={!uploadResult}
+          onToggle={() => setOpenPanel(openPanel === "clean" ? "" : "clean")}
+        >
+          <CleaningOptions
+            steps={uploadResult?.cleaning_steps || []}
+            selectedSteps={selectedCleaningSteps}
+            onToggleStep={handleCleaningStepToggle}
           />
-        </div>
-      )}
+          <div className="action-row spaced-actions">
+            <button
+              type="button"
+              disabled={isCleaning || selectedCleaningSteps.length === 0}
+              onClick={() => handlePrepareData({ skipCleaning: false })}
+            >
+              {isCleaning ? "Preparing..." : "Clean selected"}
+            </button>
+            <button
+              className="secondary-button"
+              type="button"
+              disabled={isCleaning}
+              onClick={() => handlePrepareData({ skipCleaning: true })}
+            >
+              Skip cleaning
+            </button>
+          </div>
+          {preparedResult && (
+            <>
+              <div className="file-summary">
+                <div>
+                  <span>{preparedResult.skipped_cleaning ? "Prepared file" : "Cleaned file"}</span>
+                  <strong>{preparedResult.cleaned_file}</strong>
+                </div>
+                <a
+                  className="download-link compact-link"
+                  href={`${API_BASE_URL}/download/${preparedResult.cleaned_file}`}
+                >
+                  Download
+                </a>
+              </div>
+              <ProfilePanel title="Prepared Data" profile={preparedResult.cleaned_profile} />
+              <AnalysisPanel analysis={preparedResult.analysis} />
+            </>
+          )}
+        </WorkflowCard>
+
+        <WorkflowCard
+          step="03"
+          title="Model and predict"
+          summary={preparedResult ? "Configure regression" : "Prepare data first"}
+          isOpen={openPanel === "model"}
+          isDisabled={!preparedResult}
+          onToggle={() => setOpenPanel(openPanel === "model" ? "" : "model")}
+        >
+          {preparedResult && (
+            <ModelPanel
+              numericColumns={numericColumns}
+              targetColumn={targetColumn}
+              featureColumns={featureColumns}
+              modelType={modelType}
+              validationMethod={validationMethod}
+              modelResult={modelResult}
+              modelError={modelError}
+              predictionFile={predictionFile}
+              predictionResult={predictionResult}
+              predictionError={predictionError}
+              isTraining={isTraining}
+              isPredicting={isPredicting}
+              onTargetChange={handleTargetChange}
+              onFeatureToggle={handleFeatureToggle}
+              onModelTypeChange={handleModelTypeChange}
+              onValidationMethodChange={handleValidationMethodChange}
+              onPredictionFileChange={setPredictionFile}
+              onTrain={handleTrainModel}
+              onPredict={handlePredict}
+            />
+          )}
+        </WorkflowCard>
+      </div>
+
+      {error && <p className="error-message page-error">{error}</p>}
+
     </main>
   );
 }
